@@ -107,8 +107,11 @@ public class ListaBiblioteca extends AppCompatActivity {
             ir.getImage(book.getBookPicture(), new BookRepository.ApiCallback<ResponseBody>() {
                 @Override
                 public void onSuccess(ResponseBody result) {
-                    if (result != null)
+                    if (result != null) {
                         holder.imageView.setImageBitmap(BitmapFactory.decodeStream(result.byteStream()));
+                    }else {
+                        holder.imageView.setImageResource(R.drawable.cronica);
+                    }
                 }
 
                 @Override
