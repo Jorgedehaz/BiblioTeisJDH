@@ -2,6 +2,7 @@ package com.example.biblioteca;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.biblioteca.API.models.Book;
+import com.example.biblioteca.API.models.UserSingelton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,18 @@ public class InicioActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Verificamos si hay usuario en el Singleton
+        if (UserSingelton.getInstance().getUser() == null) {
+            Log.e("INICIO", "No hay usuario en Singleton. Redirigiendo al Login.");
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        } else {
+            Log.d("INICIO", "Usuario en Singleton: " + UserSingelton.getInstance().getUser().getEmail());
+        }
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_inicio);
 
@@ -36,7 +50,7 @@ public class InicioActivity extends AppCompatActivity {
         BtnUser = findViewById(R.id.btnUser);
         Btnbiblioteca = findViewById(R.id.btnBiblioteca);
 
-        // Libros hardcodeados, se podrian subir a la ap
+        // Libros hardcodeados, se podrian subir a la api
         bookList.add(new Book(1, "Alicia en el País de las Maravillas", "Lewis Carroll", "1865"));
         bookList.add(new Book(2, "Crónica de una Muerte Anunciada", "Gabriel García Márquez", "1981"));
         bookList.add(new Book(3, "El Señor de los Anillos", "J.R.R. Tolkien", "1954"));

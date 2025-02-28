@@ -53,8 +53,9 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    private void doLogin(View v){
 
+
+    private void doLogin(View v) {
         //Declaramos User Repository
         UserRepository ur = new UserRepository();
 
@@ -62,14 +63,19 @@ public class LoginActivity extends AppCompatActivity {
         BookRepository.ApiCallback<List<User>> cb = new BookRepository.ApiCallback<List<User>>() {
             @Override
             public void onSuccess(List<User> result) {
-                for(User u: result){
-                    if ((u.getEmail().contentEquals(name.getText().toString())) && (u.getPasswordHash().contentEquals(password.getText().toString()))){
-                        UserSingelton.getInstance().setUser(u);
+                for (User u : result) {
+                    if ((u.getEmail().contentEquals(name.getText().toString())) &&
+                            (u.getPasswordHash().contentEquals(password.getText().toString()))) {
+
+                        UserSingelton.getInstance().setUser(u); // Guardamos el user en singelton
+
                         Intent intentlogin = new Intent(v.getContext(), InicioActivity.class);
                         startActivity(intentlogin);
+                        finish(); // Evita volver atrás al login
                     }
                 }
             }
+
             @Override
             public void onFailure(Throwable t) {
                 error.setText("Error de Conexión");

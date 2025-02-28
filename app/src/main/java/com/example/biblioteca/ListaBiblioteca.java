@@ -3,6 +3,7 @@ package com.example.biblioteca;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.biblioteca.API.models.Book;
+import com.example.biblioteca.API.models.UserSingelton;
 import com.example.biblioteca.API.repository.BookRepository;
 import com.example.biblioteca.API.repository.ImageRepository;
 
@@ -39,6 +41,16 @@ public class ListaBiblioteca extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_lista_biblioteca);
+
+        UserSingelton.getInstance().setUser(UserSingelton.getInstance().getUser());
+
+        if (UserSingelton.getInstance().getUser() == null) {
+            Log.e("LISTA_BIBLIOTECA", "No hay usuario en Singleton. Redirigiendo al Login.");
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
 
         RvBiblioteca = findViewById(R.id.RvBiblioteca);
         BtnUser2 = findViewById(R.id.btnUsuario2);
@@ -110,7 +122,7 @@ public class ListaBiblioteca extends AppCompatActivity {
                     if (result != null) {
                         holder.imageView.setImageBitmap(BitmapFactory.decodeStream(result.byteStream()));
                     }else {
-                        holder.imageView.setImageResource(R.drawable.cronica);
+                        holder.imageView.setImageResource(R.drawable.exception);
                     }
                 }
 
@@ -122,6 +134,7 @@ public class ListaBiblioteca extends AppCompatActivity {
 
             //ponemos checkbox marcada si esta disponible
             holder.checkBoxDisponible.setChecked(book.isAvailable());
+            holder.checkBoxDisponible.setEnabled(false); // lo deshabilito para que solo muestre el estado del libo pero el user no pueda cambiarlo
 
             holder.btnDetalles.setOnClickListener(v -> {
                 Intent intent = new Intent(v.getContext(), Detalle.class);

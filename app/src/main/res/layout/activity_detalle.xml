@@ -71,21 +71,43 @@
         android:id="@+id/checkDisponible"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="152dp"
-        android:layout_marginTop="228dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="72dp"
         android:text="Disponible"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtFecha" />
+        app:layout_constraintTop_toBottomOf="@+id/txtdescripcion" />
 
     <TextView
         android:id="@+id/txtDevolucion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="72dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="84dp"
         android:text="Fecha de devolución:"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/checkDisponible" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.611"
+        app:layout_constraintStart_toEndOf="@+id/checkDisponible"
+        app:layout_constraintTop_toBottomOf="@+id/txtdescripcion" />
+
+    <Button
+        android:id="@+id/btnPrestar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:text="Prestar"
+        app:layout_constraintBottom_toTopOf="@+id/btnVolver"
+        app:layout_constraintEnd_toStartOf="@+id/btnDevolver"
+        app:layout_constraintHorizontal_bias="0.224"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btnDevolver"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="52dp"
+        android:layout_marginBottom="12dp"
+        android:text="Devolver"
+        app:layout_constraintBottom_toTopOf="@+id/btnVolver"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 
   </androidx.constraintlayout.widget.ConstraintLayout>
