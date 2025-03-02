@@ -7,86 +7,56 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="@color/green"
+    android:padding="24dp"
+    android:background="@color/white"
     tools:context=".LoginActivity">
 
-    <!-- Contenedor para el campo de Nombre -->
-    <LinearLayout
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@drawable/portada"
+        android:contentDescription="Logo Biblioteca"
+        android:layout_marginBottom="24dp" />
+
+    <EditText
+        android:id="@+id/name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginTop="20dp">
+        android:hint="Usuario"
+        android:padding="12dp"
+        android:background="@drawable/input_field"
+        android:textSize="16sp"
+        android:inputType="text" />
 
-        <TextView
-            android:id="@+id/nombre"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Nombre:"
-            android:textSize="24sp"
-            android:gravity="end"
-            android:paddingEnd="10dp" />
-
-        <TextView
-            android:id="@+id/name"
-            android:layout_width="100dp"
-            android:layout_weight="0.5"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="100dp"
-            android:hint="Usuario"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:inputType="text"
-            android:editable="true"
-            android:background="@color/white" />
-    </LinearLayout>
-
-    <!-- Contenedor para el campo de Contraseña -->
-    <LinearLayout
+    <EditText
+        android:id="@+id/password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginTop="20dp">
-
-        <TextView
-            android:id="@+id/contraseña"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Password:"
-            android:textSize="24sp"
-            android:gravity="end"
-            android:paddingEnd="10dp" />
-
-        <TextView
-            android:id="@+id/password"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="100dp"
-            android:layout_weight="0.5"
-            android:background="@color/white"
-            android:editable="true"
-            android:hint="Password"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:inputType="textPassword" />
-    </LinearLayout>
+        android:hint="Contraseña"
+        android:padding="12dp"
+        android:background="@drawable/input_field"
+        android:textSize="16sp"
+        android:inputType="textPassword"
+        android:layout_marginTop="16dp" />
 
     <TextView
-    android:id="@+id/error"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:background="@color/white" />
-
-    <!-- Botón de Login -->
-    <Button
-        android:id="@+id/btnlogin"
+        android:id="@+id/error"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Login"
-        android:layout_marginTop="40dp"
-        android:padding="10dp"/>
+        android:textColor="@color/red"
+        android:textSize="14sp"
+        android:visibility="gone"
+        android:layout_marginTop="8dp" />
 
+    <Button
+        android:id="@+id/btnlogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Iniciar Sesión"
+        android:backgroundTint="@color/teal_700"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:layout_marginTop="24dp"
+        android:paddingVertical="12dp" />
 </LinearLayout>

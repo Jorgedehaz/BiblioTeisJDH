@@ -7,95 +7,104 @@
     android:layout_height="match_parent"
     tools:context=".ListaBiblioteca">
 
+
     <TextView
-        android:id="@+id/txtListaBilbioteca"
+        android:id="@+id/txtListaBiblioteca"
         android:layout_width="wrap_content"
-        android:layout_height="30dp"
-        android:layout_marginTop="2dp"
+        android:layout_height="wrap_content"
         android:text="Libros Biblioteca"
         android:textAlignment="center"
-        android:textSize="18dp"
+        android:textSize="22sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints" />
+        android:layout_marginTop="16dp"/>
 
-    <EditText
-        android:id="@+id/buscaTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="38dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="16dp"
-        android:hint="Busca por título"
-        android:textAlignment="center"
-        android:textSize="16dp"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        app:layout_constraintBottom_toTopOf="@+id/RvBiblioteca"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints" />
 
     <EditText
         android:id="@+id/buscaAuthor"
-        android:layout_width="wrap_content"
-        android:layout_height="38dp"
-        android:layout_marginTop="32dp"
-        android:hint="Busca por autor"
-        android:textAlignment="center"
-        android:textSize="16dp"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        app:layout_constraintBottom_toTopOf="@+id/RvBiblioteca"
-        app:layout_constraintEnd_toStartOf="@+id/buscaTitle"
-        app:layout_constraintHorizontal_bias="0.152"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:hint="Autor"
+        android:background="@android:drawable/editbox_background"
+        android:padding="8dp"
+        android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/RvBiblioteca"
-        android:layout_width="match_parent"
-        android:layout_height="580dp"
-        app:layout_constraintBottom_toTopOf="@+id/btnVolver"
-        app:layout_constraintTop_toBottomOf="@+id/btnBuscar"
-        app:layout_constraintVertical_bias="1.0"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="0dp" />
-
-    <Button
-        android:id="@+id/btnVolver"
-        android:layout_width="190dp"
-        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toStartOf="@+id/btnBuscar"
+        app:layout_constraintTop_toBottomOf="@+id/txtListaBiblioteca"
         android:layout_marginStart="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="Volver"
-        android:background="@color/cardview_dark_background"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"/>
 
-    <Button
-        android:id="@+id/btnUsuario2"
-        android:layout_width="190dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="Perfil Usuario"
-        android:background="@color/cardview_dark_background"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
         android:id="@+id/btnBuscar"
-        android:layout_width="100dp"
-        android:layout_height="38dp"
-        android:layout_marginTop="8dp"
-        android:background="@color/cardview_dark_background"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
         android:text="Buscar"
-        app:layout_constraintEnd_toStartOf="@+id/buscaTitle"
-        app:layout_constraintHorizontal_bias="0.343"
+        android:textSize="14sp"
+        android:backgroundTint="@color/teal_700"
+        android:textColor="@android:color/white"
+        app:layout_constraintTop_toBottomOf="@+id/txtListaBiblioteca"
         app:layout_constraintStart_toEndOf="@+id/buscaAuthor"
-        app:layout_constraintTop_toBottomOf="@+id/txtListaBilbioteca" />
+        app:layout_constraintEnd_toStartOf="@+id/buscaTitle"
+        android:layout_margin="8dp"/>
+
+
+    <EditText
+        android:id="@+id/buscaTitle"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:hint="Título"
+        android:background="@android:drawable/editbox_background"
+        android:padding="8dp"
+        android:textSize="16sp"
+        app:layout_constraintStart_toEndOf="@+id/btnBuscar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtListaBiblioteca"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"/>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/RvBiblioteca"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buscaAuthor"
+        app:layout_constraintBottom_toTopOf="@+id/btnVolver"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        tools:listitem="@layout/fragment_image"/>
+
+
+    <Button
+        android:id="@+id/btnVolver"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Volver"
+        android:textSize="16sp"
+        android:backgroundTint="@color/teal_700"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnUsuario2"
+        android:layout_margin="16dp"/>
+
+
+    <Button
+        android:id="@+id/btnUsuario2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Perfil Usuario"
+        android:textSize="16sp"
+        android:backgroundTint="@color/teal_700"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnVolver"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="16dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
