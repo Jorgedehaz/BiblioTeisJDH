@@ -52,11 +52,19 @@ public interface ApiService {
     @GET("booklending/{id}")
     Call<BookLending> getLending(@Path("id") int id);
 
+    //@POST("booklending")
+    //Call<BookLending> lendBook(@Body BookLendingForm lending);
+
+    //He tenido que hacer este cambio para poder prestar libros.
+    //La API podría no estar esperando estos valores en el cuerpo, sino en los parámetros de la URL.
+    //Esto me dijo GPT al hacer la peticion manualmente en swagger y enseñale el proceso y resultado.
     @POST("booklending")
-    Call<BookLending> lendBook(@Body BookLendingForm lending);
+    Call<BookLending> lendBook(@Query("userId") int userId, @Query("bookId") int bookId);
+
 
     @PUT("booklending/{id}/return")
     Call<Void> returnBook(@Path("id") int id);
+
     @GET("image/{filename}")
     Call<ResponseBody> getImage(@Path("filename") String fileName);
 }

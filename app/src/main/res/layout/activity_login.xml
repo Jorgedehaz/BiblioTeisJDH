@@ -35,6 +35,8 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="100dp"
             android:hint="Usuario"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:inputType="text"
             android:editable="true"
             android:background="@color/white" />
@@ -67,6 +69,8 @@
             android:background="@color/white"
             android:editable="true"
             android:hint="Password"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:inputType="textPassword" />
     </LinearLayout>
 

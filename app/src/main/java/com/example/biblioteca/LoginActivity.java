@@ -63,16 +63,30 @@ public class LoginActivity extends AppCompatActivity {
         BookRepository.ApiCallback<List<User>> cb = new BookRepository.ApiCallback<List<User>>() {
             @Override
             public void onSuccess(List<User> result) {
+                boolean userFound = false;
+
                 for (User u : result) {
                     if ((u.getEmail().contentEquals(name.getText().toString())) &&
                             (u.getPasswordHash().contentEquals(password.getText().toString()))) {
 
-                        UserSingelton.getInstance().setUser(u); // Guardamos el user en singelton
+                        // Guardamos el usuario en Singleton
+                        UserSingelton.getInstance().setUser(u);
 
+                        // Pasamos los datos del usuario a InicioActivity
                         Intent intentlogin = new Intent(v.getContext(), InicioActivity.class);
+                        intentlogin.putExtra("userId", u.getId());
+                        intentlogin.putExtra("userName", u.getName());
+                        intentlogin.putExtra("userEmail", u.getEmail());
+
                         startActivity(intentlogin);
                         finish(); // Evita volver atrás al login
+                        userFound = true;
+                        break;
                     }
+                }
+
+                if (!userFound) {
+                    error.setText("Usuario o contraseña incorrectos");
                 }
             }
 

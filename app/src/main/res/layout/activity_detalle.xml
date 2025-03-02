@@ -26,9 +26,9 @@
         android:id="@+id/txtAutor"
         android:layout_width="220dp"
         android:layout_height="42dp"
-        android:layout_marginStart="28dp"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="56dp"
         android:text="TextView"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imgdetalle" />
 
@@ -36,12 +36,12 @@
         android:id="@+id/txtFecha"
         android:layout_width="wrap_content"
         android:layout_height="42dp"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="24dp"
         android:text="TextView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.561"
-        app:layout_constraintStart_toEndOf="@+id/txtAutor"
-        app:layout_constraintTop_toBottomOf="@+id/imgdetalle" />
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtAutor" />
 
     <TextView
         android:id="@+id/txtdescripcion"
@@ -51,10 +51,10 @@
         android:text="TextView"
         app:layout_constraintBottom_toTopOf="@+id/btnVolver"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.244"
+        app:layout_constraintHorizontal_bias="0.251"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtAutor"
-        app:layout_constraintVertical_bias="0.314" />
+        app:layout_constraintTop_toBottomOf="@+id/txtFecha"
+        app:layout_constraintVertical_bias="0.063" />
 
     <Button
         android:id="@+id/btnVolver"
@@ -71,8 +71,8 @@
         android:id="@+id/checkDisponible"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="40dp"
-        android:layout_marginTop="72dp"
+        android:layout_marginStart="152dp"
+        android:layout_marginTop="16dp"
         android:text="Disponible"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txtdescripcion" />
@@ -81,12 +81,12 @@
         android:id="@+id/txtDevolucion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="84dp"
+        android:layout_marginTop="40dp"
         android:text="Fecha de devolución:"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.611"
-        app:layout_constraintStart_toEndOf="@+id/checkDisponible"
-        app:layout_constraintTop_toBottomOf="@+id/txtdescripcion" />
+        app:layout_constraintHorizontal_bias="0.192"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/checkDisponible" />
 
     <Button
         android:id="@+id/btnPrestar"

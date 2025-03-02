@@ -107,6 +107,9 @@ public class InicioActivity extends AppCompatActivity {
                     intent.putExtra("title", book.getTitle() != null ? book.getTitle() : "Título no disponible");
                     intent.putExtra("author", book.getAuthor() != null ? book.getAuthor() : "Autor no disponible");
                     intent.putExtra("date", book.getPublishedDate() != null ? book.getPublishedDate() : "Fecha no disponible");
+                    intent.putExtra("imageResId", imageData[position]);
+                    intent.putExtra("isAvailable", true);
+                    intent.putExtra("fromInicio", true); // usaremos esto para indicar que el libro es hardocodeado y filtrar en detalles
                     v.getContext().startActivity(intent);
                 });
             }

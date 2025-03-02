@@ -6,7 +6,9 @@ import com.example.biblioteca.API.models.BookLending;
 import com.example.biblioteca.API.models.BookLendingForm;
 import com.example.biblioteca.API.retrofit.ApiClient;
 import com.example.biblioteca.API.retrofit.ApiService;
+import com.google.gson.Gson;
 
+import java.io.IOException;
 import java.util.List;
 
 import retrofit2.Call;
@@ -35,12 +37,36 @@ public class BookLendingRepository {
         });
     }
 
-    public void lendBook(BookLendingForm lending, final BookRepository.ApiCallback<Boolean> callback) {
-        apiService.lendBook(lending).enqueue(new Callback<BookLending>() {
+    public void lendBook(int userId, int bookId, final BookRepository.ApiCallback<Boolean> callback) {
+
+        //Debuggin para saber que recibo en el repository , los datos parecen pasarse bien desde Detalles.java
+        Log.d("LENDING", "Datos enviados a repository - userId: " + userId + ", bookId: " + bookId);
+
+        apiService.lendBook(userId, bookId).enqueue(new Callback<BookLending>() {
             @Override
             public void onResponse(Call<BookLending> call, Response<BookLending> response) {
-                callback.onSuccess(response.isSuccessful());
+                if (response.isSuccessful() && response.body() != null) {
+                    Log.d("LENDING", "Libro prestado con éxito - Book ID: " + response.body().getBookId());
+                    callback.onSuccess(true);
+                } else {
+                    String errorMessage = "";
+                    try {
+                        if (response.errorBody() != null) {
+                            errorMessage = response.errorBody().string();
+                        }
+                    } catch (IOException e) {
+                        errorMessage = "Error al leer el mensaje de error.";
+                    }
+
+                    //Debuggin para ver el error que devuelve
+                    Log.e("LENDING", "Error al prestar libro. Código HTTP: " + response.code() + " - Mensaje: " + response.message());
+                    Log.e("LENDING", "Cuerpo de la respuesta: " + errorMessage); // error real
+
+                    callback.onSuccess(false);
+                }
             }
+
+
 
             @Override
             public void onFailure(Call<BookLending> call, Throwable t) {

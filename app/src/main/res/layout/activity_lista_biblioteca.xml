@@ -21,28 +21,32 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints" />
 
-    <TextView
+    <EditText
         android:id="@+id/buscaTitle"
         android:layout_width="wrap_content"
-        android:layout_height="30dp"
+        android:layout_height="38dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="16dp"
         android:hint="Busca por título"
         android:textAlignment="center"
         android:textSize="16dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         app:layout_constraintBottom_toTopOf="@+id/RvBiblioteca"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints" />
 
-    <TextView
+    <EditText
         android:id="@+id/buscaAuthor"
         android:layout_width="wrap_content"
-        android:layout_height="30dp"
+        android:layout_height="38dp"
         android:layout_marginTop="32dp"
         android:hint="Busca por autor"
         android:textAlignment="center"
         android:textSize="16dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         app:layout_constraintBottom_toTopOf="@+id/RvBiblioteca"
         app:layout_constraintEnd_toStartOf="@+id/buscaTitle"
         app:layout_constraintHorizontal_bias="0.152"
@@ -52,12 +56,13 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/RvBiblioteca"
-        android:layout_width="409dp"
-        android:layout_height="589dp"
-        android:layout_marginTop="44dp"
-        app:layout_constraintTop_toBottomOf="@+id/txtListaBilbioteca"
+        android:layout_width="match_parent"
+        android:layout_height="580dp"
+        app:layout_constraintBottom_toTopOf="@+id/btnVolver"
+        app:layout_constraintTop_toBottomOf="@+id/btnBuscar"
+        app:layout_constraintVertical_bias="1.0"
         tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="1dp" />
+        tools:layout_editor_absoluteX="0dp" />
 
     <Button
         android:id="@+id/btnVolver"
@@ -85,10 +90,11 @@
         android:id="@+id/btnBuscar"
         android:layout_width="100dp"
         android:layout_height="38dp"
+        android:layout_marginTop="8dp"
         android:background="@color/cardview_dark_background"
         android:text="Buscar"
-        app:layout_constraintBottom_toTopOf="@+id/RvBiblioteca"
         app:layout_constraintEnd_toStartOf="@+id/buscaTitle"
+        app:layout_constraintHorizontal_bias="0.343"
         app:layout_constraintStart_toEndOf="@+id/buscaAuthor"
         app:layout_constraintTop_toBottomOf="@+id/txtListaBilbioteca" />
 
