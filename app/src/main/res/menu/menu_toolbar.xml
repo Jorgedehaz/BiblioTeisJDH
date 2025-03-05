@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_inicio"
+        android:title="Inicio" />
+
+    <item
+        android:id="@+id/action_lista"
+        android:title="Biblioteca"/>
+
+    <item
+        android:id="@+id/action_perfil"
+        android:title="Perfil" />
+
+    <item
+        android:id="@+id/action_camera"
+        android:title="Camara"/>
+        <!--app:showAsAction="always"-->
+</menu>
