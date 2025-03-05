@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.biblioteca.API.models.Book;
+import com.example.biblioteca.API.models.BookLending;
 import com.example.biblioteca.API.models.BookLendingForm;
 import com.example.biblioteca.API.models.User;
 import com.example.biblioteca.API.models.UserSingelton;
@@ -33,12 +34,13 @@ import com.google.zxing.integration.android.IntentResult;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 import okhttp3.ResponseBody;
 
 public class Detalle extends AppCompatActivity {
-    private TextView txtAutor, txtFecha, txtDescripcion;
+    private TextView txtAutor, txtFecha, txtDescripcion,txtFechaDev;
     private ImageView imgDetalle;
     private CheckBox checkDisponible;
     private Button btnPrestar, btnDevolver, btnVolver;
@@ -87,6 +89,7 @@ public class Detalle extends AppCompatActivity {
 
         txtAutor = findViewById(R.id.txtAutor);
         txtFecha = findViewById(R.id.txtFecha);
+        txtFechaDev = findViewById(R.id.txtFechaDev);
         txtDescripcion = findViewById(R.id.txtdescripcion);
         imgDetalle = findViewById(R.id.imgdetalle);
         checkDisponible = findViewById(R.id.checkDisponible);
@@ -206,6 +209,27 @@ public class Detalle extends AppCompatActivity {
                 //cargamos la img del libro de detalle
                 cargarImgLibro();
 
+                // Obtener el préstamo del libro si existe
+                lendingRepository.getAllLendings(new BookRepository.ApiCallback<List<BookLending>>() {
+                    @Override
+                    public void onSuccess(List<BookLending> lendings) {
+                        for (BookLending lending : lendings) {
+                            if (lending.getBookId() == book.getId()) {
+                                // La fecha de préstamo ya está en lending.getLendDate()
+                                String returnDate = calcularFechaDevolucion(lending.getLendDate());
+                                txtFechaDev.setText("Fecha devolución: " + returnDate);
+                                break;
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        txtFechaDev.setText("Fecha devolución: No disponible");
+                    }
+                });
+
+
                 // Configurar visibilidad de botones
                 if (book.isAvailable()) {
                     btnPrestar.setVisibility(View.VISIBLE);
@@ -222,6 +246,20 @@ public class Detalle extends AppCompatActivity {
             }
         });
     }
+
+    private String calcularFechaDevolucion(String lendDate) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(sdf.parse(lendDate)); // Convertir la fecha de préstamo a objeto Calendar
+            calendar.add(Calendar.DAY_OF_MONTH, 15); // Sumar 15 días
+
+            return sdf.format(calendar.getTime()); // Convertir de nuevo a String y devolver
+        } catch (Exception e) {
+            return "No disponible";
+        }
+    }
+
 
     private void cargarImgLibro() {
         ImageRepository ir = new ImageRepository();
