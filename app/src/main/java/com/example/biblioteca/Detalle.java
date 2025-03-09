@@ -22,15 +22,12 @@ import com.example.biblioteca.API.models.Book;
 import com.example.biblioteca.API.models.BookLending;
 import com.example.biblioteca.API.models.BookLendingForm;
 import com.example.biblioteca.API.models.User;
-import com.example.biblioteca.API.models.UserSingelton;
 import com.example.biblioteca.API.repository.BookLendingRepository;
 import com.example.biblioteca.API.repository.BookRepository;
 import com.example.biblioteca.API.repository.ImageRepository;
-import com.example.biblioteca.API.repository.UserRepository;
-import com.example.biblioteca.API.repository.BookRepository.ApiCallback;
+import com.example.biblioteca.SessionManager;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
-
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -40,52 +37,32 @@ import java.util.Locale;
 import okhttp3.ResponseBody;
 
 public class Detalle extends AppCompatActivity {
-    private TextView txtAutor, txtFecha, txtDescripcion,txtFechaDev;
+    private TextView txtAutor, txtFecha, txtDescripcion, txtFechaDev;
     private ImageView imgDetalle;
     private CheckBox checkDisponible;
     private Button btnPrestar, btnDevolver, btnVolver;
     private BookRepository bookRepository;
     private BookLendingRepository lendingRepository;
-    private UserRepository userRepository;
     private int bookId;
     private Book book;
+    private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detalle);
 
-        if (UserSingelton.getInstance().getUser() == null) {
-            int userId = getIntent().getIntExtra("userId", -1);
+        // Recuperar usuario de sesión con SharedPreferences
+        SessionManager sessionManager = new SessionManager(this);
+        currentUser = sessionManager.getUser();
 
-            if (userId != -1) {
-                userRepository = new UserRepository();
-                userRepository.getUserById(userId, new ApiCallback<User>() {
-                    @Override
-                    public void onSuccess(User user) {
-                        UserSingelton.getInstance().setUser(user);
-                        Log.d("DETALLE", "✅ Usuario restaurado en Singleton desde la API: " + user.getEmail());
-
-                    }
-                    @Override
-                    public void onFailure(Throwable t) {
-                        Log.e("DETALLE", "Error al restaurar usuario desde API. Redirigiendo al Login.");
-                        Intent intent = new Intent(Detalle.this, LoginActivity.class);
-                        startActivity(intent);
-                        finish();
-                    }
-                });
-            } else {
-                Log.e("DETALLE", "No hay userId en Intent. Redirigiendo al Login.");
-                Intent intent = new Intent(this, LoginActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        } else {
-            Log.d("DETALLE", "✅ Usuario ya presente en Singleton: " + UserSingelton.getInstance().getUser().getEmail());
-
+        if (currentUser == null) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
         }
 
+        Log.d("DETALLE", "Usuario en sesión: " + currentUser.getEmail());
 
         txtAutor = findViewById(R.id.txtAutor);
         txtFecha = findViewById(R.id.txtFecha);
@@ -105,55 +82,35 @@ public class Detalle extends AppCompatActivity {
         Log.d("DETALLE", "ID del libro recibido en Detalle: " + bookId);
 
         if (bookId != -1) {
-            //El libro viene de listabiblioteca, cargar desde la API
             loadBookDetails(bookId);
         } else {
-            //El libro viene de inicio, cargar datos desde intent
-            String title = getIntent().getStringExtra("title");
-            String author = getIntent().getStringExtra("author");
-            String date = getIntent().getStringExtra("date");
-            int imageResId = getIntent().getIntExtra("imageResId", R.drawable.exception);
-            boolean isAvailable = getIntent().getBooleanExtra("isAvailable", true);
-
-            // Cargar datos
-            txtDescripcion.setText(title);
-            txtAutor.setText("Autor: " + author);
-            txtFecha.setText("Fecha: " + date);
-            imgDetalle.setImageResource(imageResId);
-
-            // Configurar disponibilidad
-            checkDisponible.setChecked(isAvailable);
-            checkDisponible.setEnabled(false);
-
-            // oculto las opciones si el libro es hardcodeado
-            btnPrestar.setVisibility(View.GONE);
-            btnDevolver.setVisibility(View.GONE);
+            cargarDatosDesdeIntent();
         }
 
         btnPrestar.setOnClickListener(v -> prestarLibro());
-        btnDevolver.setOnClickListener(v ->devolverLibro());
-        if (bookId != -1) {
-            btnVolver.setOnClickListener(v -> startActivity(new Intent(v.getContext(), ListaBiblioteca.class)));
-        }else
-            btnVolver.setOnClickListener(v -> startActivity(new Intent(v.getContext(), InicioActivity.class)));
+        btnDevolver.setOnClickListener(v -> devolverLibro());
 
+        btnVolver.setOnClickListener(v -> {
+            if (bookId != -1) {
+                startActivity(new Intent(v.getContext(), ListaBiblioteca.class));
+            } else {
+                startActivity(new Intent(v.getContext(), InicioActivity.class));
+            }
+        });
 
-        //Toolbar
+        // Configuración de Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
     }
 
-    // Inflater del menú en la Toolbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_toolbar, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
-    // listeners de las opciones de la Toolbar
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-
         int itemId = item.getItemId();
 
         if (itemId == R.id.action_inicio)
@@ -164,30 +121,30 @@ public class Detalle extends AppCompatActivity {
             startActivity(new Intent(this, Perfil.class));
         if (itemId == R.id.action_camera)
             escanearQR();
+        if (itemId == R.id.action_logout) {
+            SessionManager sessionManager = new SessionManager(this);
+            sessionManager.logout();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+        }
 
         return super.onOptionsItemSelected(item);
     }
 
-    // Método para escan de QR , mejor en una clase a parte y llamarlo (?)
     private void escanearQR() {
         IntentIntegrator integrator = new IntentIntegrator(this);
         integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE);
         integrator.setPrompt("Escanea un código QR");
-        integrator.setCameraId(0); // 0 = Cam trasera 1 = frontal
-        integrator.setBarcodeImageEnabled(false); // No guardar imagen
+        integrator.setCameraId(0);
+        integrator.setBarcodeImageEnabled(false);
         integrator.initiateScan();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if (result != null) {
-            if (result.getContents() != null) {
-                // Si escanea correctamente, redirigir a ListaBiblioteca
-                startActivity(new Intent(this, ListaBiblioteca.class));
-            } else {
-                Toast.makeText(this, "Escaneo cancelado", Toast.LENGTH_SHORT).show();
-            }
+        if (result != null && result.getContents() != null) {
+            startActivity(new Intent(this, ListaBiblioteca.class));
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
@@ -204,40 +161,9 @@ public class Detalle extends AppCompatActivity {
                 checkDisponible.setChecked(book.isAvailable());
                 checkDisponible.setEnabled(false);
 
-                Log.d("DETALLE", "Libro ID: " + book.getId() + " - Disponible desde API: " + book.isAvailable());
-
-                //cargamos la img del libro de detalle
                 cargarImgLibro();
-
-                // Obtener el préstamo del libro si existe
-                lendingRepository.getAllLendings(new BookRepository.ApiCallback<List<BookLending>>() {
-                    @Override
-                    public void onSuccess(List<BookLending> lendings) {
-                        for (BookLending lending : lendings) {
-                            if (lending.getBookId() == book.getId()) {
-                                // La fecha de préstamo ya está en lending.getLendDate()
-                                String returnDate = calcularFechaDevolucion(lending.getLendDate());
-                                txtFechaDev.setText("Fecha devolución: " + returnDate);
-                                break;
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        txtFechaDev.setText("Fecha devolución: No disponible");
-                    }
-                });
-
-
-                // Configurar visibilidad de botones
-                if (book.isAvailable()) {
-                    btnPrestar.setVisibility(View.VISIBLE);
-                    btnDevolver.setVisibility(View.GONE);
-                } else {
-                    btnPrestar.setVisibility(View.GONE);
-                    btnDevolver.setVisibility(View.VISIBLE);
-                }
+                cargarFechaDevolucion();
+                configurarBotones();
             }
 
             @Override
@@ -247,42 +173,85 @@ public class Detalle extends AppCompatActivity {
         });
     }
 
+    private void cargarFechaDevolucion() {
+        lendingRepository.getAllLendings(new BookRepository.ApiCallback<List<BookLending>>() {
+            @Override
+            public void onSuccess(List<BookLending> lendings) {
+                for (BookLending lending : lendings) {
+                    if (lending.getBookId() == book.getId()) {
+                        String returnDate = calcularFechaDevolucion(lending.getLendDate());
+                        txtFechaDev.setText("Fecha devolución: " + returnDate);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                txtFechaDev.setText("Fecha devolución: No disponible");
+            }
+        });
+    }
+
     private String calcularFechaDevolucion(String lendDate) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             Calendar calendar = Calendar.getInstance();
-            calendar.setTime(sdf.parse(lendDate)); // Convertir la fecha de préstamo a objeto Calendar
-            calendar.add(Calendar.DAY_OF_MONTH, 15); // Sumar 15 días
-
-            return sdf.format(calendar.getTime()); // Convertir de nuevo a String y devolver
+            calendar.setTime(sdf.parse(lendDate));
+            calendar.add(Calendar.DAY_OF_MONTH, 15);
+            return sdf.format(calendar.getTime());
         } catch (Exception e) {
             return "No disponible";
         }
     }
-
 
     private void cargarImgLibro() {
         ImageRepository ir = new ImageRepository();
         ir.getImage(book.getBookPicture(), new BookRepository.ApiCallback<ResponseBody>() {
             @Override
             public void onSuccess(ResponseBody result) {
-                if (result != null) {
-                    imgDetalle.setImageBitmap(BitmapFactory.decodeStream(result.byteStream()));
-                } else {
-                    imgDetalle.setImageResource(R.drawable.exception); // Imagen por defecto si falla
-                }
+                imgDetalle.setImageBitmap(BitmapFactory.decodeStream(result.byteStream()));
             }
 
             @Override
             public void onFailure(Throwable t) {
-                imgDetalle.setImageResource(R.drawable.exception); // Imagen de error si falla la carga
+                imgDetalle.setImageResource(R.drawable.exception);
             }
         });
     }
 
-    private void prestarLibro() {
+    private void configurarBotones() {
+        if (book.isAvailable()) {
+            btnPrestar.setVisibility(View.VISIBLE);
+            btnDevolver.setVisibility(View.GONE);
+        } else {
+            btnPrestar.setVisibility(View.GONE);
+            btnDevolver.setVisibility(View.VISIBLE);
+        }
+    }
 
-        int userId = UserSingelton.getInstance().getUser().getId();
+    private void cargarDatosDesdeIntent() {
+        txtDescripcion.setText(getIntent().getStringExtra("title"));
+        txtAutor.setText("Autor: " + getIntent().getStringExtra("author"));
+        txtFecha.setText("Fecha: " + getIntent().getStringExtra("date"));
+        imgDetalle.setImageResource(getIntent().getIntExtra("imageResId", R.drawable.exception));
+        checkDisponible.setChecked(getIntent().getBooleanExtra("isAvailable", true));
+        checkDisponible.setEnabled(false);
+        btnPrestar.setVisibility(View.GONE);
+        btnDevolver.setVisibility(View.GONE);
+    }
+
+    private void prestarLibro() {
+        SessionManager sessionManager = new SessionManager(this);
+        User currentUser = sessionManager.getUser();
+
+        if (currentUser == null) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        int userId = currentUser.getId();
         int bookId = this.book.getId();
 
         Log.d("LENDING", " userID " + userId + " bookId " + bookId);
@@ -293,7 +262,6 @@ public class Detalle extends AppCompatActivity {
             Toast.makeText(Detalle.this, "El libro no está disponible.", Toast.LENGTH_SHORT).show();
             return;
         }
-
 
         BookLendingForm lendingForm = new BookLendingForm(userId, bookId);
 
@@ -321,8 +289,21 @@ public class Detalle extends AppCompatActivity {
         });
     }
 
-
     private void devolverLibro() {
+        SessionManager sessionManager = new SessionManager(this);
+        User currentUser = sessionManager.getUser();
+
+        if (currentUser == null) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        int userId = currentUser.getId();
+        int bookId = this.book.getId();
+
+        Log.d("RETURN", " userID " + userId + " bookId " + bookId);
+
         lendingRepository.returnBook(bookId, new BookRepository.ApiCallback<Boolean>() {
             @Override
             public void onSuccess(Boolean success) {
@@ -343,5 +324,6 @@ public class Detalle extends AppCompatActivity {
             }
         });
     }
-}
 
+
+}

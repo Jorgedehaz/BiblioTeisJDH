@@ -46,19 +46,19 @@ public class Perfil extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_perfil);
 
-        // Verificamos si hay usuario en el Singleton
-        if (UserSingelton.getInstance().getUser() == null) {
-            Log.e("PERFIL", "Usuario en Singleton es NULL. Redirigiendo al Login.");
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
+        // Recuperar sesión del usuario
+        SessionManager sessionManager = new SessionManager(this);
+        User currentUser = sessionManager.getUser();
+
+        if (currentUser == null) {
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
-        } else {
-            Log.d("PERFIL", "Usuario en Singleton: " + UserSingelton.getInstance().getUser().getEmail());
         }
 
-        setContentView(R.layout.activity_perfil);
+        Log.d("PERFIL", "Usuario en sesión: " + currentUser.getEmail());
 
         tVNombre = findViewById(R.id.nombrePerfil);
         tVEmai = findViewById(R.id.mailPerfil);
@@ -101,6 +101,12 @@ public class Perfil extends AppCompatActivity {
             startActivity(new Intent(this, Perfil.class));
         if (itemId == R.id.action_camera)
             escanearQR();
+        if (itemId == R.id.action_logout) {
+            SessionManager sessionManager = new SessionManager(this);
+            sessionManager.logout(); // Borra los datos del usuario
+            startActivity(new Intent(this, LoginActivity.class));
+            finish(); // Cierra la actividad actual
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -131,7 +137,14 @@ public class Perfil extends AppCompatActivity {
     }
 
     private void cargarDatosUsuario() {
-        User usuario = UserSingelton.getInstance().getUser();
+        SessionManager sessionManager = new SessionManager(this);
+        User usuario = sessionManager.getUser();
+        if (usuario == null) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
         if (usuario != null) {
             tVNombre.setText("Nombre: " + usuario.getName());
             tVEmai.setText("Email: " + usuario.getEmail());
@@ -150,7 +163,8 @@ public class Perfil extends AppCompatActivity {
         lendingRepository.getAllLendings(new BookRepository.ApiCallback<List<BookLending>>() {
             @Override
             public void onSuccess(List<BookLending> prestamos) {
-                User usuario = UserSingelton.getInstance().getUser();
+                SessionManager sessionManager = new SessionManager(Perfil.this); //Perfil.this para que coja el user de aqui. no en bookrepository
+                User usuario = sessionManager.getUser();
                 List<BookLending> prestamosUsuario = new ArrayList<>();
 
                 for (BookLending prestamo : prestamos) {

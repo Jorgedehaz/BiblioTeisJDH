@@ -19,11 +19,13 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.biblioteca.API.models.Book;
+import com.example.biblioteca.API.models.User;
 import com.example.biblioteca.API.models.UserSingelton;
 import com.example.biblioteca.API.repository.BookRepository;
 import com.example.biblioteca.API.repository.ImageRepository;
@@ -43,6 +45,7 @@ public class ListaBiblioteca extends AppCompatActivity {
     private List<Book> bookList = new ArrayList<>();
     private List<Book> filteredList = new ArrayList<>();
     private BookRepository bookRepository;
+    private BookViewModel bookViewModel;
     private MyAdapter adapter;
 
     @Override
@@ -51,15 +54,17 @@ public class ListaBiblioteca extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_lista_biblioteca);
 
-        if (UserSingelton.getInstance().getUser() == null) {
-            Log.e("LISTA_BIBLIOTECA", "No hay usuario en Singleton. Redirigiendo al Login.");
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
+        SessionManager sessionManager = new SessionManager(this);
+        User currentUser = sessionManager.getUser();
+
+        // Si no hay usuario guardado, redirigir a Login
+        if (currentUser == null) {
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
-        } else {
-            Log.d("LISTA_BIBLIOTECA", "Usuario en Singleton: " + UserSingelton.getInstance().getUser().getEmail());
         }
+
+        Log.d("INICIO", "Usuario en sesión: " + currentUser.getEmail());
 
         RvBiblioteca = findViewById(R.id.RvBiblioteca);
         BtnUser2 = findViewById(R.id.btnUsuario2);
@@ -76,7 +81,17 @@ public class ListaBiblioteca extends AppCompatActivity {
         adapter = new MyAdapter(filteredList);
         RvBiblioteca.setAdapter(adapter);
 
-        loadBooks();
+        // Usamos ViewModel
+        bookViewModel = new ViewModelProvider(this).get(BookViewModel.class);
+        bookViewModel.getBooksLiveData().observe(this, books -> {
+            if (books != null) {
+                filteredList.clear();
+                filteredList.addAll(books);
+                adapter.notifyDataSetChanged();
+            } else {
+                Toast.makeText(this, "Error al cargar los libros", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         BtnUser2.setOnClickListener(v -> startActivity(new Intent(v.getContext(), Perfil.class)));
         BtnVolver.setOnClickListener(v -> startActivity(new Intent(v.getContext(), InicioActivity.class)));
@@ -108,6 +123,12 @@ public class ListaBiblioteca extends AppCompatActivity {
             startActivity(new Intent(this, Perfil.class));
         if (itemId == R.id.action_camera)
             escanearQR();
+        if (itemId == R.id.action_logout) {
+            SessionManager sessionManager = new SessionManager(this);
+            sessionManager.logout(); // Borra los datos del usuario
+            startActivity(new Intent(this, LoginActivity.class));
+            finish(); // Cierra la actividad actual
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -137,23 +158,6 @@ public class ListaBiblioteca extends AppCompatActivity {
         }
     }
 
-    // Cargar libros desde la API
-    private void loadBooks() {
-        bookRepository.getBooks(new BookRepository.ApiCallback<List<Book>>() {
-            @Override
-            public void onSuccess(List<Book> result) {
-                bookList = result;
-                filteredList.clear();
-                filteredList.addAll(bookList);
-                adapter.notifyDataSetChanged(); // Refrescamos la lista completa en la RecyclerView
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                Toast.makeText(ListaBiblioteca.this, "Error al cargar los libros", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
 
     // Filtrar libros por título y autor
     private void buscarLibros() {
@@ -234,10 +238,19 @@ public class ListaBiblioteca extends AppCompatActivity {
             holder.checkBoxDisponible.setEnabled(false);
 
             holder.btnDetalles.setOnClickListener(v -> {
-                Intent intent = new Intent(v.getContext(), Detalle.class);
-                intent.putExtra("bookId", book.getId());
-                intent.putExtra("userId", UserSingelton.getInstance().getUser().getId());
-                v.getContext().startActivity(intent);
+                // Obtener el usuario desde SharedPreferences en lugar del Singleton
+                SessionManager sessionManager = new SessionManager(v.getContext());
+                User currentUser = sessionManager.getUser();
+
+                if (currentUser != null) {
+                    Intent intent = new Intent(v.getContext(), Detalle.class);
+                    intent.putExtra("bookId", book.getId());
+                    intent.putExtra("userId", currentUser.getId());
+                    v.getContext().startActivity(intent);
+                } else {
+                    Log.e("LISTA_BIBLIOTECA", "No hay usuario en sesión. Redirigiendo al login.");
+                    v.getContext().startActivity(new Intent(v.getContext(), LoginActivity.class));
+                }
             });
         }
 

@@ -16,4 +16,8 @@
         android:id="@+id/action_camera"
         android:title="Camara"/>
         <!--app:showAsAction="always"-->
+    <item
+        android:id="@+id/action_logout"
+        android:title="Logout"/>
+
 </menu>

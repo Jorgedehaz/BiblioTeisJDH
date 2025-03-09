@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.biblioteca.API.models.Book;
+import com.example.biblioteca.API.models.User;
 import com.example.biblioteca.API.models.UserSingelton;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
@@ -39,16 +40,17 @@ public class InicioActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Verificamos si hay usuario en el Singleton
-        if (UserSingelton.getInstance().getUser() == null) {
-            Log.e("INICIO", "No hay usuario en Singleton. Redirigiendo al Login.");
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
+        SessionManager sessionManager = new SessionManager(this);
+        User currentUser = sessionManager.getUser();
+
+        // Si no hay usuario guardado, redirigir a Login
+        if (currentUser == null) {
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
-        } else {
-            Log.d("INICIO", "Usuario en Singleton: " + UserSingelton.getInstance().getUser().getEmail());
         }
+
+        Log.d("INICIO", "Usuario en sesión: " + currentUser.getEmail());
 
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_inicio);
@@ -97,6 +99,12 @@ public class InicioActivity extends AppCompatActivity {
              startActivity(new Intent(this, Perfil.class));
         if (itemId == R.id.action_camera)
             escanearQR();
+        if (itemId == R.id.action_logout) {
+            SessionManager sessionManager = new SessionManager(this);
+            sessionManager.logout(); // Borra los datos del usuario
+            startActivity(new Intent(this, LoginActivity.class));
+            finish(); // Cierra la actividad actual
+        }
 
         return super.onOptionsItemSelected(item);
     }
