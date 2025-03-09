@@ -26,7 +26,6 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.example.biblioteca.API.models.Book;
 import com.example.biblioteca.API.models.User;
-import com.example.biblioteca.API.models.UserSingelton;
 import com.example.biblioteca.API.repository.BookRepository;
 import com.example.biblioteca.API.repository.ImageRepository;
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -40,11 +39,9 @@ import okhttp3.ResponseBody;
 public class ListaBiblioteca extends AppCompatActivity {
 
     RecyclerView RvBiblioteca;
-    Button BtnVolver, BtnUser2, BtnBuscar;
+    Button BtnBuscar;
     EditText buscaTitle, buscaAuthor;
-    private List<Book> bookList = new ArrayList<>();
     private List<Book> filteredList = new ArrayList<>();
-    private BookRepository bookRepository;
     private BookViewModel bookViewModel;
     private MyAdapter adapter;
 
@@ -67,21 +64,15 @@ public class ListaBiblioteca extends AppCompatActivity {
         Log.d("INICIO", "Usuario en sesión: " + currentUser.getEmail());
 
         RvBiblioteca = findViewById(R.id.RvBiblioteca);
-        BtnUser2 = findViewById(R.id.btnUsuario2);
-        BtnVolver = findViewById(R.id.btnVolver);
         BtnBuscar = findViewById(R.id.btnBuscar);
         buscaTitle = findViewById(R.id.buscaTitle);
         buscaAuthor = findViewById(R.id.buscaAuthor);
 
-        bookRepository = new BookRepository();
-
         RvBiblioteca.setLayoutManager(new LinearLayoutManager(this));
-
-        // Inicialice el adaptader con filteredlist (hasta que se busquen libros es igual a bookList)
         adapter = new MyAdapter(filteredList);
         RvBiblioteca.setAdapter(adapter);
 
-        // Usamos ViewModel
+        // Inicializar ViewModel y cargar libros
         bookViewModel = new ViewModelProvider(this).get(BookViewModel.class);
         bookViewModel.getBooksLiveData().observe(this, books -> {
             if (books != null) {
@@ -93,8 +84,6 @@ public class ListaBiblioteca extends AppCompatActivity {
             }
         });
 
-        BtnUser2.setOnClickListener(v -> startActivity(new Intent(v.getContext(), Perfil.class)));
-        BtnVolver.setOnClickListener(v -> startActivity(new Intent(v.getContext(), InicioActivity.class)));
         BtnBuscar.setOnClickListener(v -> buscarLibros());
 
         //Toolbar
@@ -112,7 +101,6 @@ public class ListaBiblioteca extends AppCompatActivity {
     // listeners de las opciones de la Toolbar
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-
         int itemId = item.getItemId();
 
         if (itemId == R.id.action_inicio)
@@ -133,7 +121,7 @@ public class ListaBiblioteca extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    // Método para escan de QR , mejor en una clase a parte y llamarlo (?)
+    // Método para escanear QR
     private void escanearQR() {
         IntentIntegrator integrator = new IntentIntegrator(this);
         integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE);
@@ -148,7 +136,6 @@ public class ListaBiblioteca extends AppCompatActivity {
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
         if (result != null) {
             if (result.getContents() != null) {
-                // Si escanea correctamente, redirigir a ListaBiblioteca
                 startActivity(new Intent(this, ListaBiblioteca.class));
             } else {
                 Toast.makeText(this, "Escaneo cancelado", Toast.LENGTH_SHORT).show();
@@ -158,15 +145,17 @@ public class ListaBiblioteca extends AppCompatActivity {
         }
     }
 
-
     // Filtrar libros por título y autor
     private void buscarLibros() {
         String titleFilter = buscaTitle.getText().toString().toLowerCase().trim();
         String authorFilter = buscaAuthor.getText().toString().toLowerCase().trim();
 
+        List<Book> allBooks = bookViewModel.getBooksLiveData().getValue();
+        if (allBooks == null) return;
+
         filteredList.clear();
 
-        for (Book book : bookList) {
+        for (Book book : allBooks) {
             boolean matchesTitle = titleFilter.isEmpty() || book.getTitle().toLowerCase().contains(titleFilter);
             boolean matchesAuthor = authorFilter.isEmpty() || book.getAuthor().toLowerCase().contains(authorFilter);
             if (matchesTitle && matchesAuthor) {
@@ -178,7 +167,7 @@ public class ListaBiblioteca extends AppCompatActivity {
             Toast.makeText(this, "No se encontraron resultados", Toast.LENGTH_SHORT).show();
         }
 
-        adapter.notifyDataSetChanged(); // notificar cambios a la lista
+        adapter.notifyDataSetChanged();
     }
 
     // Adaptador
@@ -229,27 +218,21 @@ public class ListaBiblioteca extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Throwable t) {
-                    holder.imageView.setImageResource(R.drawable.cronica);
+                    holder.imageView.setImageResource(R.drawable.exception);
                 }
             });
 
-            // Checkbox marcado si el libro esta disponible
             holder.checkBoxDisponible.setChecked(book.isAvailable());
             holder.checkBoxDisponible.setEnabled(false);
 
             holder.btnDetalles.setOnClickListener(v -> {
-                // Obtener el usuario desde SharedPreferences en lugar del Singleton
                 SessionManager sessionManager = new SessionManager(v.getContext());
                 User currentUser = sessionManager.getUser();
 
                 if (currentUser != null) {
                     Intent intent = new Intent(v.getContext(), Detalle.class);
                     intent.putExtra("bookId", book.getId());
-                    intent.putExtra("userId", currentUser.getId());
                     v.getContext().startActivity(intent);
-                } else {
-                    Log.e("LISTA_BIBLIOTECA", "No hay usuario en sesión. Redirigiendo al login.");
-                    v.getContext().startActivity(new Intent(v.getContext(), LoginActivity.class));
                 }
             });
         }
