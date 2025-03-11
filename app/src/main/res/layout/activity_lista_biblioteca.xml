@@ -12,11 +12,13 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/teal_700"
-        app:title="Biblioteca"
-        app:titleTextColor="@android:color/white"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:menu="@menu/menu_toolbar"
-        tools:ignore="MissingConstraints" />
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:title="Biblioteca"
+        app:titleTextColor="@android:color/white" />
 
 
     <TextView
@@ -53,14 +55,15 @@
         android:id="@+id/btnBuscar"
         android:layout_width="wrap_content"
         android:layout_height="40dp"
-        android:text="Buscar"
-        android:textSize="14sp"
+        android:layout_margin="8dp"
         android:backgroundTint="@color/teal_700"
+        android:text="Buscar"
         android:textColor="@android:color/white"
-        app:layout_constraintTop_toBottomOf="@+id/txtListaBiblioteca"
-        app:layout_constraintStart_toEndOf="@+id/buscaAuthor"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@+id/RvBiblioteca"
         app:layout_constraintEnd_toStartOf="@+id/buscaTitle"
-        android:layout_margin="8dp"/>
+        app:layout_constraintStart_toEndOf="@+id/buscaAuthor"
+        app:layout_constraintTop_toBottomOf="@+id/txtListaBiblioteca" />
 
 
     <EditText

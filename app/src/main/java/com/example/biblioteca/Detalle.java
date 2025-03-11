@@ -26,6 +26,7 @@ import com.example.biblioteca.API.repository.BookLendingRepository;
 import com.example.biblioteca.API.repository.BookRepository;
 import com.example.biblioteca.API.repository.ImageRepository;
 import com.example.biblioteca.SessionManager;
+import com.example.biblioteca.helper.Helper;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
@@ -46,6 +47,7 @@ public class Detalle extends AppCompatActivity {
     private int bookId;
     private Book book;
     private User currentUser;
+    private Helper helper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,56 +100,28 @@ public class Detalle extends AppCompatActivity {
             }
         });
 
-        // Configuración de Toolbar
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        //Toolbar
+        helper = new Helper(this);
+        helper.setupToolbar();
     }
 
+    // Inflater del menú en la Toolbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_toolbar, menu);
-        return super.onCreateOptionsMenu(menu);
+        return helper.onCreateOptionsMenu(menu);
     }
 
+    // listeners de las opciones de la Toolbar
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        int itemId = item.getItemId();
-
-        if (itemId == R.id.action_inicio)
-            startActivity(new Intent(this, InicioActivity.class));
-        if (itemId == R.id.action_lista)
-            startActivity(new Intent(this, ListaBiblioteca.class));
-        if (itemId == R.id.action_perfil)
-            startActivity(new Intent(this, Perfil.class));
-        if (itemId == R.id.action_camera)
-            escanearQR();
-        if (itemId == R.id.action_logout) {
-            SessionManager sessionManager = new SessionManager(this);
-            sessionManager.logout();
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
-        }
-
-        return super.onOptionsItemSelected(item);
+        return helper.handleMenuItemClick(item) || super.onOptionsItemSelected(item);
     }
 
-    private void escanearQR() {
-        IntentIntegrator integrator = new IntentIntegrator(this);
-        integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE);
-        integrator.setPrompt("Escanea un código QR");
-        integrator.setCameraId(0);
-        integrator.setBarcodeImageEnabled(false);
-        integrator.initiateScan();
-    }
-
+    //resultado del scan del qr
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if (result != null && result.getContents() != null) {
-            startActivity(new Intent(this, ListaBiblioteca.class));
-        } else {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
+        helper.handleQRResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private void loadBookDetails(int bookId) {
@@ -262,8 +236,6 @@ public class Detalle extends AppCompatActivity {
             Toast.makeText(Detalle.this, "El libro no está disponible.", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        BookLendingForm lendingForm = new BookLendingForm(userId, bookId);
 
         lendingRepository.lendBook(userId, bookId, new BookRepository.ApiCallback<Boolean>() {
             @Override

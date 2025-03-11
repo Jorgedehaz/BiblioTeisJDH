@@ -12,10 +12,13 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/teal_700"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/menu_toolbar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:title="Biblioteca"
         app:titleTextColor="@android:color/white"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        app:menu="@menu/menu_toolbar"
         tools:ignore="MissingConstraints" />
 
 

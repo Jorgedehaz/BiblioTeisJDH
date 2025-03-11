@@ -14,13 +14,13 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/teal_700"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:menu="@menu/menu_toolbar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:title="Biblioteca"
-        app:titleTextColor="@android:color/white"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="1dp" />
+        app:titleTextColor="@android:color/white" />
 
     <TextView
         android:id="@+id/txtInicio"
@@ -65,12 +65,13 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:text="Lista Biblioteca"
             android:backgroundTint="@color/teal_700"
+            android:padding="10dp"
+            android:text="Lista Biblioteca"
             android:textColor="@color/white"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/btnUser"
-            android:padding="10dp" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <Button
             android:id="@+id/btnUser"
@@ -78,12 +79,13 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:text="Perfil Usuario"
             android:backgroundTint="@color/teal_700"
+            android:padding="10dp"
+            android:text="Perfil Usuario"
             android:textColor="@color/white"
-            app:layout_constraintStart_toEndOf="@id/btnBiblioteca"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:padding="10dp" />
+            app:layout_constraintStart_toEndOf="@id/btnBiblioteca" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

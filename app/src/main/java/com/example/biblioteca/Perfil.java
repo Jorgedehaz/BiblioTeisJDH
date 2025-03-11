@@ -25,6 +25,7 @@ import com.example.biblioteca.API.models.UserSingelton;
 import com.example.biblioteca.API.repository.BookLendingRepository;
 import com.example.biblioteca.API.repository.ImageRepository;
 import com.example.biblioteca.API.repository.BookRepository;
+import com.example.biblioteca.helper.Helper;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
@@ -42,6 +43,7 @@ public class Perfil extends AppCompatActivity {
     private Button btnVolver;
     private ImageRepository imageRepository;
     private BookLendingRepository lendingRepository;
+    private Helper helper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,64 +78,27 @@ public class Perfil extends AppCompatActivity {
         obtenerPrestamosDesdeAPI(); // Llamada para cargar la lista de prestamos de cada user
 
         //Toolbar
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        helper = new Helper(this);
+        helper.setupToolbar();
     }
 
     // Inflater del menú en la Toolbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_toolbar, menu);
-        return super.onCreateOptionsMenu(menu);
+        return helper.onCreateOptionsMenu(menu);
     }
 
     // listeners de las opciones de la Toolbar
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-
-        int itemId = item.getItemId();
-
-        if (itemId == R.id.action_inicio)
-            startActivity(new Intent(this, InicioActivity.class));
-        if (itemId == R.id.action_lista)
-            startActivity(new Intent(this, ListaBiblioteca.class));
-        if (itemId == R.id.action_perfil)
-            startActivity(new Intent(this, Perfil.class));
-        if (itemId == R.id.action_camera)
-            escanearQR();
-        if (itemId == R.id.action_logout) {
-            SessionManager sessionManager = new SessionManager(this);
-            sessionManager.logout(); // Borra los datos del usuario
-            startActivity(new Intent(this, LoginActivity.class));
-            finish(); // Cierra la actividad actual
-        }
-
-        return super.onOptionsItemSelected(item);
+        return helper.handleMenuItemClick(item) || super.onOptionsItemSelected(item);
     }
 
-    // Método para escan de QR , mejor en una clase a parte y llamarlo (?)
-    private void escanearQR() {
-        IntentIntegrator integrator = new IntentIntegrator(this);
-        integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE);
-        integrator.setPrompt("Escanea un código QR");
-        integrator.setCameraId(0); // 0 = Cam trasera 1 = frontal
-        integrator.setBarcodeImageEnabled(false); // No guardar imagen
-        integrator.initiateScan();
-    }
-
+    //resultado del scan del qr
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if (result != null) {
-            if (result.getContents() != null) {
-                // Si escanea correctamente, redirigir a ListaBiblioteca
-                startActivity(new Intent(this, ListaBiblioteca.class));
-            } else {
-                Toast.makeText(this, "Escaneo cancelado", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
+        helper.handleQRResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private void cargarDatosUsuario() {
