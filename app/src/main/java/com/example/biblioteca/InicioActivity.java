@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -95,8 +96,8 @@ public class InicioActivity extends AppCompatActivity {
     //resultado del scan del qr
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        helper.handleQRResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
+        helper.handleQRResult(requestCode, resultCode, data);
     }
 
 
@@ -114,12 +115,14 @@ public class InicioActivity extends AppCompatActivity {
             TextView textView;
             ImageView imageView;
             Button detailBtn;
+            CheckBox chkDisponible;
 
             public MyViewHolder(@NonNull View itemView) {
                 super(itemView);
                 textView = itemView.findViewById(R.id.txtlibroini);
                 imageView = itemView.findViewById(R.id.imgLibroini);
                 detailBtn = itemView.findViewById(R.id.btnlibroini);
+                chkDisponible = itemView.findViewById(R.id.checkDisponible);
             }
         }
 
@@ -137,6 +140,8 @@ public class InicioActivity extends AppCompatActivity {
             if (book != null) {
                 holder.textView.setText(book.getTitle());
                 holder.imageView.setImageResource(imageData[position]);
+                holder.chkDisponible.setVisibility(View.GONE); // los libros hardcodeados no tendran chkbox
+
 
                 // Configurar botón detalles
                 holder.detailBtn.setOnClickListener(v -> {

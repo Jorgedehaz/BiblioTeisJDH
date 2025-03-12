@@ -3,31 +3,29 @@ package com.example.biblioteca;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 import com.example.biblioteca.API.models.Book;
 import com.example.biblioteca.API.models.BookLending;
 import com.example.biblioteca.API.models.User;
-import com.example.biblioteca.API.models.UserSingelton;
 import com.example.biblioteca.API.repository.BookLendingRepository;
 import com.example.biblioteca.API.repository.ImageRepository;
 import com.example.biblioteca.API.repository.BookRepository;
 import com.example.biblioteca.helper.Helper;
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -97,8 +95,8 @@ public class Perfil extends AppCompatActivity {
     //resultado del scan del qr
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        helper.handleQRResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
+        helper.handleQRResult(requestCode, resultCode, data);
     }
 
     private void cargarDatosUsuario() {
@@ -115,6 +113,7 @@ public class Perfil extends AppCompatActivity {
             tVEmai.setText("Email: " + usuario.getEmail());
             tVFecha.setText("Fecha Alta: " + usuario.getDateJoined());
 
+
             // Cargar imagen de perfil
             if (usuario.getProfilePicture() != null && !usuario.getProfilePicture().isEmpty()) {
                 getImage(usuario.getProfilePicture());
@@ -128,15 +127,25 @@ public class Perfil extends AppCompatActivity {
         lendingRepository.getAllLendings(new BookRepository.ApiCallback<List<BookLending>>() {
             @Override
             public void onSuccess(List<BookLending> prestamos) {
-                SessionManager sessionManager = new SessionManager(Perfil.this); //Perfil.this para que coja el user de aqui. no en bookrepository
+                SessionManager sessionManager = new SessionManager(Perfil.this);
                 User usuario = sessionManager.getUser();
                 List<BookLending> prestamosUsuario = new ArrayList<>();
 
                 for (BookLending prestamo : prestamos) {
-                    if (prestamo.getUserId() == usuario.getId()) { // la api devuelve el id , por lo que tuve que compararlas con el user de la sesion
+                    if (prestamo.getUserId() == usuario.getId()) {
                         prestamosUsuario.add(prestamo);
                     }
                 }
+
+                if (prestamosUsuario.isEmpty()) {
+                    runOnUiThread(() -> cargarListaLibros(prestamosUsuario));
+                    return;
+                }
+
+                //ordenar la lista
+                prestamosUsuario.sort((p1, p2) -> p2.getLendDate().compareTo(p1.getLendDate()));
+
+
                 runOnUiThread(() -> cargarListaLibros(prestamosUsuario));
             }
 
@@ -148,6 +157,7 @@ public class Perfil extends AppCompatActivity {
     }
 
 
+
     private void cargarListaLibros(List<BookLending> bookLendings) {
         if (bookLendings != null && !bookLendings.isEmpty()) {
             List<String> librosInfo = new ArrayList<>();
@@ -157,10 +167,43 @@ public class Perfil extends AppCompatActivity {
                 bookRepository.getBookById(prestamo.getBookId(), new BookRepository.ApiCallback<Book>() {
                     @Override
                     public void onSuccess(Book book) {
-                        String info = book.getTitle() + " - Fehca préstamo: " + prestamo.getLendDate();
-                        librosInfo.add(info);
+                        String lendDateFormatted = helper.formatDate(prestamo.getLendDate());
+                        String returnDateExpected = helper.calcularFechaDevolucion(prestamo.getLendDate()); // Calculamos fecha esperada
+                        String returnDateFormatted = (prestamo.getReturnDate() != null)
+                                ? helper.formatDate(prestamo.getReturnDate())
+                                : "No devuelto";
+
+                        // Verificamos si la fecha de devolución ha pasado
+                        boolean vencido = helper.isFechaVenida(returnDateExpected) && prestamo.getReturnDate() == null;
+
+                        String info = book.getTitle() + " - Prestado: " + lendDateFormatted + " - Devolución: " + returnDateFormatted;
+
+                        synchronized (librosInfo) {
+                            librosInfo.add(info);
+                        }
+
                         runOnUiThread(() -> {
-                            ArrayAdapter<String> adapter = new ArrayAdapter<>(Perfil.this, android.R.layout.simple_list_item_1, librosInfo);
+                            librosInfo.sort((a, b) -> b.split(" - Prestado: ")[1].compareTo(a.split(" - Prestado: ")[1]));
+
+                            // Adaptador para mostrar colores en la lista
+                            ArrayAdapter<String> adapter = new ArrayAdapter<String>(Perfil.this, android.R.layout.simple_list_item_1, librosInfo) {
+                                @Override
+                                public View getView(int position, View convertView, ViewGroup parent) {
+                                    View view = super.getView(position, convertView, parent);
+                                    TextView textView = (TextView) view;
+
+                                    // Si la fecha estimada de devolución ya pasó muestra rojo, si no negro
+                                    // Yo puse una fecha estimada de 15 días a partir del prestamo. Viendo el enunciado entendí que sería el plazo estimado.
+                                    if (vencido) {
+                                        textView.setTextColor(Color.RED);
+                                    } else {
+                                        textView.setTextColor(Color.BLACK);
+                                    }
+
+                                    return view;
+                                }
+                            };
+
                             listaLibros.setAdapter(adapter);
                         });
                     }
@@ -173,6 +216,7 @@ public class Perfil extends AppCompatActivity {
             }
         }
     }
+
 
 
     private void getImage(String imageName) {

@@ -41,7 +41,7 @@ import okhttp3.ResponseBody;
 public class ListaBiblioteca extends AppCompatActivity {
 
     RecyclerView RvBiblioteca;
-    Button BtnBuscar;
+    Button BtnBuscar,BtnPerfil,BtnVolver;
     EditText buscaTitle, buscaAuthor;
     private List<Book> filteredList = new ArrayList<>();
     private BookViewModel bookViewModel;
@@ -68,8 +68,10 @@ public class ListaBiblioteca extends AppCompatActivity {
 
         RvBiblioteca = findViewById(R.id.RvBiblioteca);
         BtnBuscar = findViewById(R.id.btnBuscar);
+        BtnPerfil = findViewById(R.id.btnUsuario2);
         buscaTitle = findViewById(R.id.buscaTitle);
         buscaAuthor = findViewById(R.id.buscaAuthor);
+        BtnVolver = findViewById(R.id.btnVolver);
 
         RvBiblioteca.setLayoutManager(new LinearLayoutManager(this));
         adapter = new MyAdapter(filteredList);
@@ -88,6 +90,9 @@ public class ListaBiblioteca extends AppCompatActivity {
         });
 
         BtnBuscar.setOnClickListener(v -> buscarLibros());
+        BtnPerfil.setOnClickListener(v -> startActivity(new Intent(v.getContext(), Perfil.class)));
+        BtnVolver.setOnClickListener(v -> startActivity(new Intent(v.getContext(), InicioActivity.class)));
+
 
         //Toolbar
         helper = new Helper(this);
@@ -109,8 +114,8 @@ public class ListaBiblioteca extends AppCompatActivity {
     //resultado del scan del qr
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        helper.handleQRResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
+        helper.handleQRResult(requestCode, resultCode, data);
     }
 
     // Filtrar libros por título y autor
@@ -172,6 +177,10 @@ public class ListaBiblioteca extends AppCompatActivity {
         public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
             Book book = books.get(position);
             holder.textView.setText(book.getTitle());
+
+            // Convertir la fecha a dd-MM-yyyy antes de mostrarla
+            String formattedDate = helper.formatDate(book.getPublishedDate());
+            holder.textView.setText(book.getTitle() + "\nPublicado: " + formattedDate);
 
             ImageRepository ir = new ImageRepository();
             ir.getImage(book.getBookPicture(), new BookRepository.ApiCallback<ResponseBody>() {

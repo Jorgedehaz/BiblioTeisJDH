@@ -31,6 +31,7 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -120,8 +121,8 @@ public class Detalle extends AppCompatActivity {
     //resultado del scan del qr
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        helper.handleQRResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
+        helper.handleQRResult(requestCode, resultCode, data);
     }
 
     private void loadBookDetails(int bookId) {
@@ -130,7 +131,7 @@ public class Detalle extends AppCompatActivity {
             public void onSuccess(Book result) {
                 book = result;
                 txtAutor.setText("Autor: " + book.getAuthor());
-                txtFecha.setText("Fecha: " + book.getPublishedDate());
+                txtFecha.setText("Fecha: " + helper.formatDate(book.getPublishedDate()));
                 txtDescripcion.setText(book.getTitle());
                 checkDisponible.setChecked(book.isAvailable());
                 checkDisponible.setEnabled(false);
@@ -151,48 +152,69 @@ public class Detalle extends AppCompatActivity {
         lendingRepository.getAllLendings(new BookRepository.ApiCallback<List<BookLending>>() {
             @Override
             public void onSuccess(List<BookLending> lendings) {
+                // Filtrar préstamos del libro actual
+                List<BookLending> prestamosLibro = new ArrayList<>();
                 for (BookLending lending : lendings) {
                     if (lending.getBookId() == book.getId()) {
-                        String returnDate = calcularFechaDevolucion(lending.getLendDate());
-                        txtFechaDev.setText("Fecha devolución: " + returnDate);
-                        break;
+                        prestamosLibro.add(lending);
                     }
+                }
+
+                if (prestamosLibro.isEmpty()) {
+                    txtFechaDev.setText(""); // No mostrar nada si no hay préstamo
+                    return;
+                }
+
+                // Ordenar por fecha de préstamo en orden descendente (últimos primero)
+                prestamosLibro.sort((p1, p2) -> p2.getLendDate().compareTo(p1.getLendDate()));
+
+                // Tomar el último préstamo sin devolver
+                for (BookLending lending : prestamosLibro) {
+                    if (lending.getReturnDate() == null) {
+                        String returnDate = helper.calcularFechaDevolucion(lending.getLendDate());
+                        txtFechaDev.setText("Fecha devolución: " + returnDate);
+                        return;
+                    }
+                }
+
+                // Si todos los préstamos tienen devolución, no mostramos nada
+                txtFechaDev.setText("");
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                txtFechaDev.setText(""); // En caso de error, no mostrar nada
+            }
+        });
+    }
+
+    private void cargarImgLibro() {
+        if (book.getBookPicture() == null || book.getBookPicture().isEmpty()) {
+            Log.e("DETALLE", "Imagen no disponible, usando imagen por defecto.");
+            imgDetalle.setImageResource(R.drawable.exception);
+            return;
+        }
+
+        ImageRepository ir = new ImageRepository();
+        ir.getImage(book.getBookPicture(), new BookRepository.ApiCallback<ResponseBody>() {
+            @Override
+            public void onSuccess(ResponseBody result) {
+                if (result != null) {
+                    imgDetalle.setImageBitmap(BitmapFactory.decodeStream(result.byteStream()));
+                } else {
+                    Log.e("DETALLE", "No se pudo cargar la imagen desde el servidor.");
+                    imgDetalle.setImageResource(R.drawable.exception);
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                txtFechaDev.setText("Fecha devolución: No disponible");
-            }
-        });
-    }
-
-    private String calcularFechaDevolucion(String lendDate) {
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(sdf.parse(lendDate));
-            calendar.add(Calendar.DAY_OF_MONTH, 15);
-            return sdf.format(calendar.getTime());
-        } catch (Exception e) {
-            return "No disponible";
-        }
-    }
-
-    private void cargarImgLibro() {
-        ImageRepository ir = new ImageRepository();
-        ir.getImage(book.getBookPicture(), new BookRepository.ApiCallback<ResponseBody>() {
-            @Override
-            public void onSuccess(ResponseBody result) {
-                imgDetalle.setImageBitmap(BitmapFactory.decodeStream(result.byteStream()));
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
+                Log.e("DETALLE", "Error al cargar la imagen", t);
                 imgDetalle.setImageResource(R.drawable.exception);
             }
         });
     }
+
 
     private void configurarBotones() {
         if (book.isAvailable()) {
@@ -209,11 +231,21 @@ public class Detalle extends AppCompatActivity {
         txtAutor.setText("Autor: " + getIntent().getStringExtra("author"));
         txtFecha.setText("Fecha: " + getIntent().getStringExtra("date"));
         imgDetalle.setImageResource(getIntent().getIntExtra("imageResId", R.drawable.exception));
-        checkDisponible.setChecked(getIntent().getBooleanExtra("isAvailable", true));
-        checkDisponible.setEnabled(false);
+
+        boolean liborIni = getIntent().getBooleanExtra("fromInicio", false);
+
+        if (liborIni) {
+            checkDisponible.setVisibility(View.GONE);
+            txtFechaDev.setVisibility(View.GONE);
+        } else {
+            checkDisponible.setChecked(getIntent().getBooleanExtra("isAvailable", true));
+            checkDisponible.setEnabled(false);
+        }
+
         btnPrestar.setVisibility(View.GONE);
         btnDevolver.setVisibility(View.GONE);
     }
+
 
     private void prestarLibro() {
         SessionManager sessionManager = new SessionManager(this);
