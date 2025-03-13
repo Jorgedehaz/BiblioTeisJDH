@@ -32,6 +32,7 @@ public class Helper {
     private final AppCompatActivity activity;
     private final BookRepository bookRepository;
 
+
     public Helper(AppCompatActivity activity) {
         this.activity = activity;
         this.bookRepository = new BookRepository();
@@ -92,20 +93,23 @@ public class Helper {
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
         if (result != null && result.getContents() != null) {
             String scannedISBN = result.getContents();
-            buscarLibroPorISBN(scannedISBN);
+            Toast.makeText(activity, scannedISBN, Toast.LENGTH_SHORT).show();
+            int scannedId = 1;
+            buscarLibroPorISBN(scannedId);
         } else {
             Toast.makeText(activity, "Escaneo cancelado o sin resultado", Toast.LENGTH_SHORT).show();
         }
     }
 
     // Manejo del resultado del escaneo de QR
-    private void buscarLibroPorISBN(String isbn) {
-        bookRepository.getBookByISBN(isbn, new BookRepository.ApiCallback<Book>() {
+    private void buscarLibroPorISBN(int isbn) {
+
+        bookRepository.getBookById(isbn, new BookRepository.ApiCallback<Book>() {
             @Override
-            public void onSuccess(Book book) {
-                if (book != null) {
+            public void onSuccess(Book result) {
+                if (isbn != 0) {
                     Intent intent = new Intent(activity, Detalle.class);
-                    intent.putExtra("bookId", book.getId());
+                    intent.putExtra("bookId", isbn);
                     activity.startActivity(intent);
                 } else {
                     Toast.makeText(activity, "Libro no encontrado", Toast.LENGTH_SHORT).show();

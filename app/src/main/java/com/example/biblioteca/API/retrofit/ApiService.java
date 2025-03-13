@@ -68,8 +68,4 @@ public interface ApiService {
     @GET("image/{filename}")
     Call<ResponseBody> getImage(@Path("filename") String fileName);
 
-    @GET("api/books/isbn/{isbn}")
-    Call<Book> getBookByISBN(@Path("isbn") String isbn);
-
-
 }

@@ -98,27 +98,6 @@ public class BookRepository {
         });
     }
 
-    public void getBookByISBN(String isbn, final ApiCallback<Book> callback) {
-        apiService.getBookByISBN(isbn).enqueue(new Callback<Book>() {
-            @Override
-            public void onResponse(Call<Book> call, Response<Book> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    callback.onSuccess(response.body());
-                } else {
-                    callback.onSuccess(null);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Book> call, Throwable t) {
-                callback.onFailure(t);
-            }
-        });
-    }
-
-
-
-
     // Callback interface for handling success or failure
     public interface ApiCallback<T> {
         void onSuccess(T result);
