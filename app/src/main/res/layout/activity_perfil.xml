@@ -18,8 +18,7 @@
         app:menu="@menu/menu_toolbar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:title="Biblioteca"
-        app:titleTextColor="@android:color/white"
-        tools:ignore="MissingConstraints" />
+        app:titleTextColor="@android:color/white" />
 
 
     <ImageView

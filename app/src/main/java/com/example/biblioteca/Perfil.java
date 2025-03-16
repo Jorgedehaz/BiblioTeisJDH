@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -156,66 +157,91 @@ public class Perfil extends AppCompatActivity {
         });
     }
 
+    //clase auxiliar para poder almacenar los datos y que funcione el acceso desde lista. Lo intente
+    //con una lista paralela dentro del metodo por eso los accesos a detalles no se me correspondian con
+    //la lista que se ve en la view. Las ids no se ordenaban correctamente y se mezclaban las ids reales con lo que veia el usuario
+    class LibroInfo {
+        Book book;
+        BookLending lending;
+
+        LibroInfo(Book book, BookLending lending) {
+            this.book = book;
+            this.lending = lending;
+        }
+    }
 
 
     private void cargarListaLibros(List<BookLending> bookLendings) {
-        if (bookLendings != null && !bookLendings.isEmpty()) {
-            List<String> librosInfo = new ArrayList<>();
-            BookRepository bookRepository = new BookRepository();
+        if (bookLendings == null || bookLendings.isEmpty()) return;
 
-            for (BookLending prestamo : bookLendings) {
-                bookRepository.getBookById(prestamo.getBookId(), new BookRepository.ApiCallback<Book>() {
-                    @Override
-                    public void onSuccess(Book book) {
-                        String lendDateFormatted = helper.formatDate(prestamo.getLendDate());
-                        String returnDateExpected = helper.calcularFechaDevolucion(prestamo.getLendDate()); // Calculamos fecha esperada
-                        String returnDateFormatted = (prestamo.getReturnDate() != null)
-                                ? helper.formatDate(prestamo.getReturnDate())
-                                : "No devuelto";
+        List<LibroInfo> librosCompletos = new ArrayList<>();
+        BookRepository bookRepository = new BookRepository();
 
-                        // Verificamos si la fecha de devolución ha pasado
-                        boolean vencido = helper.isFechaVenida(returnDateExpected) && prestamo.getReturnDate() == null;
+        for (BookLending prestamo : bookLendings) {
+            bookRepository.getBookById(prestamo.getBookId(), new BookRepository.ApiCallback<Book>() {
+                @Override
+                public void onSuccess(Book book) {
+                    synchronized (librosCompletos) {
+                        librosCompletos.add(new LibroInfo(book, prestamo));
+                    }
 
-                        String info = book.getTitle() + " - Prestado: " + lendDateFormatted + " - Devolución: " + returnDateFormatted;
-
-                        synchronized (librosInfo) {
-                            librosInfo.add(info);
-                        }
-
+                    // Solo cuando se hayan añadido TODOS los libros
+                    if (librosCompletos.size() == bookLendings.size()) {
                         runOnUiThread(() -> {
-                            librosInfo.sort((a, b) -> b.split(" - Prestado: ")[1].compareTo(a.split(" - Prestado: ")[1]));
+                            // Ordenar solo una vez al final
+                            librosCompletos.sort((a, b) -> b.lending.getLendDate().compareTo(a.lending.getLendDate()));
 
-                            // Adaptador para mostrar colores en la lista
-                            ArrayAdapter<String> adapter = new ArrayAdapter<String>(Perfil.this, android.R.layout.simple_list_item_1, librosInfo) {
+                            List<String> librosInfoText = new ArrayList<>();
+                            for (LibroInfo item : librosCompletos) {
+                                String lendDateFormatted = helper.formatDate(item.lending.getLendDate());
+                                String returnDateFormatted = (item.lending.getReturnDate() != null) ? helper.formatDate(item.lending.getReturnDate()) : "No devuelto";
+
+                                librosInfoText.add(item.book.getTitle() + " - Prestado: " + lendDateFormatted + " - Devolución: " + returnDateFormatted);
+                            }
+
+                            ArrayAdapter<String> adapter = new ArrayAdapter<String>(Perfil.this, android.R.layout.simple_list_item_1, librosInfoText) {
                                 @Override
                                 public View getView(int position, View convertView, ViewGroup parent) {
                                     View view = super.getView(position, convertView, parent);
                                     TextView textView = (TextView) view;
 
-                                    // Si la fecha estimada de devolución ya pasó muestra rojo, si no negro
-                                    // Yo puse una fecha estimada de 15 días a partir del prestamo. Viendo el enunciado entendí que sería el plazo estimado.
-                                    if (vencido) {
-                                        textView.setTextColor(Color.RED);
-                                    } else {
-                                        textView.setTextColor(Color.BLACK);
-                                    }
+                                    LibroInfo item = librosCompletos.get(position);
+                                    String fechaEsperada = helper.calcularFechaDevolucion(item.lending.getLendDate());
+                                    boolean vencido = helper.isFechaVenida(fechaEsperada) && item.lending.getReturnDate() == null;
 
+                                    textView.setTextColor(vencido ? Color.RED : Color.BLACK);
                                     return view;
                                 }
                             };
 
                             listaLibros.setAdapter(adapter);
+
+                            // Click solo si el libro no se devolvió todavía
+                            listaLibros.setOnItemClickListener((parent, view, position, id) -> {
+                                LibroInfo item = librosCompletos.get(position);
+                                if (item.lending.getReturnDate() == null) {
+                                    Intent intent = new Intent(Perfil.this, Detalle.class);
+                                    intent.putExtra("bookId", item.book.getId());
+                                    startActivity(intent);
+                                } else {
+                                    Toast.makeText(Perfil.this, "Este libro ya fue devuelto.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         });
                     }
+                }
 
-                    @Override
-                    public void onFailure(Throwable t) {
-                        Log.e("Perfil", "Error obteniendo libro", t);
-                    }
-                });
-            }
+                @Override
+                public void onFailure(Throwable t) {
+                    Log.e("Perfil", "Error obteniendo libro", t);
+                }
+            });
         }
     }
+
+
+
+
 
 
 
